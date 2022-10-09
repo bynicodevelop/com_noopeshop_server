@@ -5,11 +5,16 @@ const {info} = require('firebase-functions/logger');
 admin.initializeApp();
 
 const createUser = async (user) => {
-  const {email: dataEmail, displayName: dataDisplayName} = user;
+  const {
+    email: dataEmail,
+    displayName: dataDisplayName,
+    photoURL: dataPhotoURL,
+  } = user;
 
   const {uid, email, displayName} = await admin.auth().createUser({
     email: dataEmail,
     displayName: dataDisplayName,
+    photoURL: dataPhotoURL,
   });
 
   return {uid, email, displayName};
@@ -29,7 +34,12 @@ const updateUser = async (user) => {
 const getUserList = async () => {
   const listUsersResult = await admin.auth().listUsers();
 
-  return listUsersResult.users;
+  return listUsersResult.users.map((userRecord) => ({
+    uid: userRecord.uid,
+    email: userRecord.email,
+    displayName: userRecord.displayName,
+    photoURL: userRecord.photoURL,
+  }));
 };
 
 
@@ -97,7 +107,7 @@ exports.listCommon = functions.https.onCall(async (data, context) => {
   if (collection === 'users') {
     return {
       'result': 'success',
-      'data': await getUserList(data),
+      'data': await getUserList(),
     };
   }
 
