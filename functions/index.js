@@ -2,46 +2,14 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const {info} = require('firebase-functions/logger');
 
+const {
+  createUser,
+  updateUser,
+  deleteUser,
+  getUserList,
+} = require('./controllers/user');
+
 admin.initializeApp();
-
-const createUser = async (user) => {
-  const {
-    email: dataEmail,
-    displayName: dataDisplayName,
-    photoURL: dataPhotoURL,
-  } = user;
-
-  const {uid, email, displayName} = await admin.auth().createUser({
-    email: dataEmail,
-    displayName: dataDisplayName,
-    photoURL: dataPhotoURL,
-  });
-
-  return {uid, email, displayName};
-};
-
-const updateUser = async (user) => {
-  const {uid, email, displayName} = user;
-
-  await admin.auth().updateUser(uid, {
-    email,
-    displayName,
-  });
-
-  return {uid, email, displayName};
-};
-
-const getUserList = async () => {
-  const listUsersResult = await admin.auth().listUsers();
-
-  return listUsersResult.users.map((userRecord) => ({
-    uid: userRecord.uid,
-    email: userRecord.email,
-    displayName: userRecord.displayName,
-    photoURL: userRecord.photoURL,
-  }));
-};
-
 
 exports.createCommon = functions.https.onCall(async (data, context) => {
   const {collection, data: docData} = data;
@@ -87,7 +55,7 @@ exports.deleteCommon = functions.https.onCall(async (data, context) => {
   const {collection, uid} = data;
 
   if (collection === 'users') {
-    await admin.auth().deleteUser(uid);
+    await deleteUser(uid);
 
     return {
       'result': 'success',
